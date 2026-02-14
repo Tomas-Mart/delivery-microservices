@@ -1,0 +1,38 @@
+stages:
+  - build
+  - test
+  - docker
+  - deploy
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository/
+
+build:
+  stage: build
+  script:
+    - mvn clean compile
+  artifacts:
+    paths:
+      - target/
+
+test:
+  stage: test
+  script:
+    - mvn test
+  services:
+    - postgres:15
+    - redis:7
+
+docker:
+  stage: docker
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/session-service ./session-service
+    - docker build -t $CI_REGISTRY_IMAGE/order-service ./order-service
+    - docker build -t $CI_REGISTRY_IMAGE/payout-service ./payout-service
+    - docker push $CI_REGISTRY_IMAGE/session-service
+    - docker push $CI_REGISTRY_IMAGE/order-service
+    - docker push $CI_REGISTRY_IMAGE/payout-service

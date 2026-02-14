@@ -1,0 +1,44 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-session:5432/sessiondb
+    username: user
+    password: pass
+    driver-class-name: org.postgresql.Driver
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: false
+
+management:
+  health:
+    redis:
+      enabled: false
+
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+    metrics:
+      export:
+        prometheus:
+          enabled: true

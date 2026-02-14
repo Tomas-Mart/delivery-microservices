@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'session-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'session-service:8081' ]
+
+  - job_name: 'order-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'order-service:8082' ]
+
+  - job_name: 'payout-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'payout-service:8083' ]
+
+  - job_name: 'kafka'
+    static_configs:
+      - targets: [ 'kafka:9092' ]
