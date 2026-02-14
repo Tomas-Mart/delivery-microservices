@@ -88,6 +88,32 @@ services:
     image: dockerhub.timeweb.cloud/grafana/grafana
     ports:
       - "3000:3000"
+    volumes:
+      # Для автоматического импорта дашбордов из папки
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards
+      # Для конфигурации provisioning (datasources, dashboards)
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      # Для хранения данных (чтобы не терялись при перезапуске)
+      - grafana-data:/var/lib/grafana
+    environment:
+      # Учётные данные
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      # Настройка домашнего дашборда (опционально)
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/spring-boot-3x-stats.json
+      # Отключить установку плагинов (ускоряет запуск)
+      - GF_INSTALL_PLUGINS=
+      # Настройки анонимного доступа (опционально)
+      # - GF_AUTH_ANONYMOUS_ENABLED=true
+      # - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      # Настройки логов
+      - GF_LOG_LEVEL=info
+      - GF_LOG_MODE=console
+    restart: unless-stopped
+    networks:
+      - delivery-microservices_default
+    depends_on:
+      - prometheus
 
   elasticsearch:
     image: dockerhub.timeweb.cloud/elastic/elasticsearch:7.10.2
@@ -174,3 +200,10 @@ volumes:
   postgres-session-data:
   postgres-order-data:
   postgres-payout-data:
+  grafana-data:
+    driver: local
+
+networks:
+  delivery-microservices_default:
+    driver: bridge
+

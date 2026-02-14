@@ -5,5 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <includeAll path="db/changelog/changes/"/>
+    <!-- Явно указываем каждый файл миграции -->
+    <include file="changes/V1__create_payout_tables.sql" relativeToChangelogFile="true"/>
+    <include file="changes/V2__add_status_to_payouts.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

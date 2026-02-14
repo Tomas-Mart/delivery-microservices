@@ -2,6 +2,8 @@ package org.example.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,6 +32,10 @@ public class PendingPayout {
 
     @Column(name = "order_id", nullable = false)
     private Long orderId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private PayoutStatus status;
 
     @Column(name = "amount", precision = 10, scale = 2)
     private BigDecimal amount;
