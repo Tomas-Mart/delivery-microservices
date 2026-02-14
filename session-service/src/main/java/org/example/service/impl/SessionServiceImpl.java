@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.exception.CourierAlreadyHasActiveSessionException;
 import org.example.exception.SessionNotFoundException;
 import org.example.model.Session;
+import org.example.model.SessionStatus;
 import org.example.repository.SessionRepository;
 import org.example.rest.dto.SessionDto;
 import org.example.service.SessionService;
@@ -40,7 +41,7 @@ public class SessionServiceImpl implements SessionService {
         // Создаём новую смену
         Session session = new Session();
         session.setCourierId(courierId);
-        session.setStatus("ACTIVE");
+        session.setStatus(SessionStatus.ACTIVE);
         session.setStartTime(LocalDateTime.now());
 
         Session saved = sessionRepository.save(session);
@@ -56,7 +57,7 @@ public class SessionServiceImpl implements SessionService {
         Session session = sessionRepository.findById(id)
                 .orElseThrow(() -> new SessionNotFoundException(id));
 
-        boolean active = "ACTIVE".equals(session.getStatus());
+        boolean active = SessionStatus.ACTIVE.equals(session.getStatus());  // Сравниваем ENUM
         log.debug("📊 Смена ID: {} активна: {}", id, active);
 
         return active;
@@ -78,7 +79,8 @@ public class SessionServiceImpl implements SessionService {
 
         return sessionRepository.findById(id)
                 .map(session -> {
-                    log.debug("📦 Найдена смена: id={}, курьер={}", session.getId(), session.getCourierId());
+                    log.debug("📦 Найдена смена: id={}, курьер={}, статус={}",
+                            session.getId(), session.getCourierId(), session.getStatus());
                     return SessionDto.fromEntity(session);
                 });
     }

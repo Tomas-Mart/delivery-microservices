@@ -1,9 +1,10 @@
 package org.example.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.model.SessionStatus;
 import org.example.rest.dto.SessionDto;
 import org.example.rest.dto.StartSessionRequest;
-import org.example.service.impl.SessionServiceImpl;
+import org.example.service.SessionService;  // Импортируем интерфейс, а не реализацию
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,7 +25,7 @@ class SessionControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private SessionServiceImpl sessionServiceImpl;
+    private SessionService sessionService;  // Используем интерфейс вместо реализации
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -35,13 +36,13 @@ class SessionControllerTest {
         StartSessionRequest request = new StartSessionRequest();
         request.setCourierId("test-courier");
 
-        // Создаём DTO без builder
+        // Создаём DTO с ENUM статусом
         SessionDto sessionDto = new SessionDto();
         sessionDto.setId(1L);
         sessionDto.setCourierId("test-courier");
-        sessionDto.setStatus("ACTIVE");
+        sessionDto.setStatus(SessionStatus.ACTIVE);  // Используем ENUM
 
-        when(sessionServiceImpl.start(anyString()))
+        when(sessionService.start(anyString()))  // Используем интерфейс
                 .thenReturn(sessionDto);
 
         // when/then
@@ -51,6 +52,6 @@ class SessionControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.courierId").value("test-courier"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.status").value("ACTIVE"));  // JSON ожидает строку "ACTIVE"
     }
 }

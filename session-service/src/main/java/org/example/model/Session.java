@@ -1,38 +1,47 @@
 package org.example.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.Version;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "sessions")
+@Table(name = "sessions", indexes = {
+        @Index(name = "idx_courier_id", columnList = "courier_id"),
+        @Index(name = "idx_status", columnList = "status"),
+        @Index(name = "idx_courier_status", columnList = "courier_id, status")
+})
 public class Session {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "courier_id", nullable = false)
+    @Column(name = "courier_id", nullable = false, length = 50)
     private String courierId;
 
-    @Column(name = "status", nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private SessionStatus status;
 
-    @Column(name = "start_time", nullable = false)
+    @CreationTimestamp
+    @Column(name = "start_time", nullable = false, updatable = false)
     private LocalDateTime startTime;
 
+    @UpdateTimestamp
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
     @Version
+    @Column(name = "version", nullable = false)
     private Integer version;
 }

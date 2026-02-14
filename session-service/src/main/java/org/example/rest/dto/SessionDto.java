@@ -3,6 +3,7 @@ package org.example.rest.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.model.Session;
+import org.example.model.SessionStatus;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 public class SessionDto {
     private Long id;
     private String courierId;
-    private String status;
+    private SessionStatus status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 

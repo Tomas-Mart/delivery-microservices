@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.model.Session;
+import org.example.model.SessionStatus;
 import org.example.repository.SessionRepository;
 import org.example.rest.dto.SessionDto;
 import org.example.service.impl.SessionServiceImpl;
@@ -22,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest
-public class SessionServiceImplIntegrationTest {
+public class SessionServiceIntegrationTest {
 
     private static final DockerImageName POSTGRES_IMAGE = DockerImageName
             .parse("dockerhub.timeweb.cloud/library/postgres:15")
@@ -43,7 +44,7 @@ public class SessionServiceImplIntegrationTest {
             .withExposedPorts(6379);
 
     @Autowired
-    private SessionServiceImpl sessionServiceImpl;
+    private SessionService sessionService;
 
     @Autowired
     private SessionRepository sessionRepository;
@@ -65,31 +66,32 @@ public class SessionServiceImplIntegrationTest {
     @Test
     void start_ShouldCreateSessionInDatabase() {
         // when
-        SessionDto result = sessionServiceImpl.start("test-courier");
+        SessionDto result = sessionService.start("test-courier");
 
         // then
+        assertThat(result).isNotNull();
         assertThat(result.getId()).isNotNull();
 
         Optional<Session> saved = sessionRepository.findById(result.getId());
         assertThat(saved).isPresent();
         assertThat(saved.get().getCourierId()).isEqualTo("test-courier");
-        assertThat(saved.get().getStatus()).isEqualTo("ACTIVE");
+        assertThat(saved.get().getStatus()).isEqualTo(SessionStatus.ACTIVE);  // Исправлено: сравниваем ENUM с ENUM
     }
 
     @Test
     void getSessionById_ShouldReturnCachedResult() {
         // given - создаём смену
-        SessionDto created = sessionServiceImpl.start("test-courier-2");
+        SessionDto created = sessionService.start("test-courier-2");
         Long sessionId = created.getId();
 
         // when - первый раз (из БД)
         long startTime1 = System.currentTimeMillis();
-        SessionDto result1 = sessionServiceImpl.getSessionById(sessionId);
+        SessionDto result1 = sessionService.getSessionById(sessionId);
         long duration1 = System.currentTimeMillis() - startTime1;
 
         // when - второй раз (из кэша)
         long startTime2 = System.currentTimeMillis();
-        SessionDto result2 = sessionServiceImpl.getSessionById(sessionId);
+        SessionDto result2 = sessionService.getSessionById(sessionId);
         long duration2 = System.currentTimeMillis() - startTime2;
 
         // then
@@ -97,7 +99,8 @@ public class SessionServiceImplIntegrationTest {
         assertThat(result2).isNotNull();
         assertThat(result1.getId()).isEqualTo(result2.getId());
         assertThat(result1.getCourierId()).isEqualTo(result2.getCourierId());
-        assertThat(result1.getStatus()).isEqualTo(result2.getStatus());
+        assertThat(result1.getStatus()).isEqualTo(SessionStatus.ACTIVE);  // Исправлено
+        assertThat(result2.getStatus()).isEqualTo(SessionStatus.ACTIVE);  // Исправлено
 
         // Проверяем, что второй запрос быстрее (из кэша)
         assertThat(duration2).isLessThan(duration1);
