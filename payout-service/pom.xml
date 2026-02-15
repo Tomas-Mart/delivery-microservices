@@ -88,6 +88,11 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.example</groupId>
+            <artifactId>shared-dto</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

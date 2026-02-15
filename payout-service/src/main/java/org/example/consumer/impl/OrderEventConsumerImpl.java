@@ -3,7 +3,7 @@ package org.example.consumer.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.consumer.OrderEventConsumer;
-import org.example.event.OrderDeliveredEvent;
+import org.example.dto.OrderDeliveredEvent;
 import org.example.service.PayoutService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

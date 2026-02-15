@@ -28,13 +28,17 @@ spring:
     enabled: true
 
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: kafka:29092
     consumer:
       group-id: payout-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"
+        spring.json.trusted.packages: "org.example.dto"  # Изменено: конкретный пакет вместо "*"
+        spring.json.value.default.type: org.example.dto.OrderDeliveredEvent  # Добавлено: тип по умолчанию
+        spring.json.use.type.headers: false  # Добавлено: не использовать заголовки типа
+      auto-offset-reset: earliest  # Добавлено: начать с начала, если нет offset
+      enable-auto-commit: false  # Добавлено: ручное подтверждение
 
 management:
   health:

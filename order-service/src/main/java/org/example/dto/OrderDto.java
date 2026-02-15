@@ -2,7 +2,7 @@ package org.example.dto;
 
 import lombok.Data;
 import org.example.model.Order;
-import org.example.model.OrderStatus;
+import org.example.enums.OrderStatus;
 
 import java.time.LocalDateTime;
 

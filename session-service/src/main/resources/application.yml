@@ -4,6 +4,10 @@ spring:
     username: user
     password: pass
     driver-class-name: org.postgresql.Driver
+    hikari: # Добавлено: настройки пула соединений
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
 
   data:
     redis:
@@ -15,10 +19,12 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
+        shutdown-timeout: 200ms  # Добавлено
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
+    contexts: dev  # Добавлено: контекст для разных сред
 
   jpa:
     hibernate:
@@ -27,18 +33,28 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_batch_fetch_size: 100  # Добавлено: оптимизация запросов
     show-sql: false
+    open-in-view: false  # Добавлено: отключить Open Session in View
 
 management:
   health:
     redis:
       enabled: false
+    # Добавлено: дополнительные проверки здоровья
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
 
   endpoints:
     web:
       exposure:
-        include: health,prometheus
+        include: health,prometheus,info,metrics  # Добавлено больше эндпоинтов
     metrics:
       export:
         prometheus:
           enabled: true
+      # Добавлено: включить все метрики по умолчанию
+      enable:
+        all: true

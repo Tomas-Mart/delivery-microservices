@@ -1,6 +1,6 @@
 package org.example.consumer;
 
-import org.example.event.OrderDeliveredEvent;
+import org.example.dto.OrderDeliveredEvent;
 
 /**
  * Интерфейс Kafka консьюмера для обработки событий заказов

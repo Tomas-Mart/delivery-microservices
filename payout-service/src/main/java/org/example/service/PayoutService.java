@@ -1,6 +1,6 @@
 package org.example.service;
 
-import org.example.event.OrderDeliveredEvent;
+import org.example.dto.OrderDeliveredEvent;
 
 import java.math.BigDecimal;
 
