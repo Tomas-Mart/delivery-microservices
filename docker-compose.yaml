@@ -56,10 +56,25 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_JMX_PORT: 9999
       KAFKA_JMX_HOSTNAME: localhost
+
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 1
+    healthcheck:
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   # Kafka Exporter для сбора JMX метрик
   kafka-exporter:
@@ -89,24 +104,17 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Для автоматического импорта дашбордов из папки
-      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards
-      # Для конфигурации provisioning (datasources, dashboards)
+      # Дашборды JSON в отдельную папку
+      - ./grafana-dashboards:/var/lib/grafana/dashboards
+      # Конфиги провижининга в стандартную папку
       - ./grafana/provisioning:/etc/grafana/provisioning
-      # Для хранения данных (чтобы не терялись при перезапуске)
+      # Данные
       - grafana-data:/var/lib/grafana
     environment:
-      # Учётные данные
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
-      # Настройка домашнего дашборда (опционально)
-      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/spring-boot-3x-stats.json
-      # Отключить установку плагинов (ускоряет запуск)
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/spring-boot-3x-stats.json
       - GF_INSTALL_PLUGINS=
-      # Настройки анонимного доступа (опционально)
-      # - GF_AUTH_ANONYMOUS_ENABLED=true
-      # - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-      # Настройки логов
       - GF_LOG_LEVEL=info
       - GF_LOG_MODE=console
     restart: unless-stopped

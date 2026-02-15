@@ -30,24 +30,32 @@ public class SessionServiceImpl implements SessionService {
     @Transactional
     public SessionDto start(String courierId) {
         log.info("▶️ Начало смены для курьера: {}", courierId);
+        if (courierId == null || courierId.trim().isEmpty()) {
+            log.warn("❌ Передан пустой courierId");
+            throw new IllegalArgumentException("courierId не может быть пустым");
+        }
+        try {
+            // Проверяем, нет ли уже активной смены
+            sessionRepository.findActiveByCourierId(courierId)
+                    .ifPresent(s -> {
+                        log.warn("⚠️ Курьер {} уже имеет активную смену с ID: {}", courierId, s.getId());
+                        throw new CourierAlreadyHasActiveSessionException(courierId);
+                    });
 
-        // Проверяем, нет ли уже активной смены
-        sessionRepository.findActiveByCourierId(courierId)
-                .ifPresent(s -> {
-                    log.warn("⚠️ Курьер {} уже имеет активную смену с ID: {}", courierId, s.getId());
-                    throw new CourierAlreadyHasActiveSessionException(courierId);
-                });
+            // Создаём новую смену
+            Session session = new Session();
+            session.setCourierId(courierId);
+            session.setStatus(SessionStatus.ACTIVE);
+            session.setStartTime(LocalDateTime.now());
 
-        // Создаём новую смену
-        Session session = new Session();
-        session.setCourierId(courierId);
-        session.setStatus(SessionStatus.ACTIVE);
-        session.setStartTime(LocalDateTime.now());
+            Session saved = sessionRepository.save(session);
+            log.info("✅ Создана смена с ID: {} для курьера: {}", saved.getId(), courierId);
 
-        Session saved = sessionRepository.save(session);
-        log.info("✅ Создана смена с ID: {} для курьера: {}", saved.getId(), courierId);
-
-        return SessionDto.fromEntity(saved);
+            return SessionDto.fromEntity(saved);
+        } catch (Exception e) {
+            log.error("❌ Ошибка при создании смены: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
