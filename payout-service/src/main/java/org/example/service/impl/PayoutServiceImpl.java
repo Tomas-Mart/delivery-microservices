@@ -40,15 +40,17 @@ public class PayoutServiceImpl implements PayoutService {
             }
 
             // Создание выплаты за заказ
-            PendingPayout payout = new PendingPayout();
-            payout.setCourierId(event.getCourierId());
-            payout.setOrderId(event.getOrderId());
-            payout.setAmount(calculatePayout(event));
+            // ✅ Используем фабричный метод модели
+            PendingPayout payout = PendingPayout.createForOrder(
+                    event.getCourierId(),
+                    event.getOrderId(),
+                    calculatePayout(event)
+            );
 
             // Сохраняем выплату
             payoutRepository.save(payout);
-            log.debug("💾 Выплата сохранена в БД: заказ={}, курьер={}, сумма={}",
-                    event.getOrderId(), event.getCourierId(), payout.getAmount());
+            log.debug("💾 Выплата сохранена в БД: заказ={}, курьер={}, сумма={}, статус={}",
+                    event.getOrderId(), event.getCourierId(), payout.getAmount(), payout.getStatus());
 
             // Отмечаем событие как обработанное
             payoutRepository.markEventProcessed("order-" + event.getOrderId());
