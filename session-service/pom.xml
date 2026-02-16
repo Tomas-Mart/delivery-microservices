@@ -18,50 +18,37 @@
     <description>Session management microservice</description>
 
     <dependencies>
-        <!-- Spring Boot Starters (специфичные для сервиса) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-        </dependency>
+        <!-- Spring Boot Starter Data Redis (специфично для session-service) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
 
-        <!-- Database (специфичные для этого сервиса) -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-        </dependency>
-
-        <!-- Redis (специфичный для этого сервиса) -->
+        <!-- Commons Pool2 для Redis connection pooling -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
         </dependency>
 
-        <!-- Jaeger (специфичный, можно оставить или перенести в родительский) -->
+        <!-- Spring Boot Cache (для кэширования) -->
         <dependency>
-            <groupId>io.opentracing.contrib</groupId>
-            <artifactId>opentracing-spring-jaeger-cloud-starter</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
+        <!-- ВСЕ остальные зависимости наследуются из родительского POM:
+             - spring-boot-starter-web
+             - spring-boot-starter-data-jpa
+             - spring-boot-starter-validation
+             - spring-boot-starter-actuator
+             - postgresql
+             - liquibase-core
+             - lombok
+             - spring-boot-starter-test
+             - testcontainers
+             - jackson-databind
+             - jackson-datatype-jsr310
+             - opentracing-spring-jaeger-cloud-starter
+             - micrometer-registry-prometheus-->
     </dependencies>
 
     <build>
