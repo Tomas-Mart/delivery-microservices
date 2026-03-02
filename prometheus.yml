@@ -17,6 +17,6 @@ scrape_configs:
     static_configs:
       - targets: [ 'payout-service:8083' ]
 
-  - job_name: 'kafka'
+  - job_name: 'kafka-exporter'
     static_configs:
-      - targets: [ 'kafka:9092' ]
+      - targets: [ 'kafka-exporter:8080' ]
