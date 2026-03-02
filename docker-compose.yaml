@@ -94,13 +94,10 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      # Монтируем ваш локальный файл конфигурации
       - ./jmx-exporter-config.yml:/opt/bitnami/jmx-exporter/config.yml
     environment:
-      # Переменная окружения, которая указывает на config (опционально, но помогает)
       - JMX_EXPORTER_CONFIG=/opt/bitnami/jmx-exporter/config.yml
     command:
-      # Передаём параметры в правильном порядке: <порт> <путь к конфигу>
       - "8080"
       - "/opt/bitnami/jmx-exporter/config.yml"
 
@@ -116,11 +113,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Дашборды JSON в отдельную папку
       - ./grafana-dashboards:/var/lib/grafana/dashboards
-      # Конфиги провижининга в стандартную папку
       - ./grafana/provisioning:/etc/grafana/provisioning
-      # Данные
       - grafana-data:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
@@ -130,8 +124,6 @@ services:
       - GF_LOG_LEVEL=info
       - GF_LOG_MODE=console
     restart: unless-stopped
-    networks:
-      - delivery-microservices_default
     depends_on:
       - prometheus
 
@@ -167,9 +159,10 @@ services:
       - "14269:14269"
       - "9411:9411"
 
-  # Микросервисы
+  # Микросервисы (используем образы из registry)
   session-service:
-    build: ./session-service
+    image: ${CI_REGISTRY_IMAGE}/v2-session-service:latest
+    pull_policy: always
     depends_on:
       - postgres-session
       - redis
@@ -184,7 +177,8 @@ services:
       SERVER_PORT: 8081
 
   order-service:
-    build: ./order-service
+    image: ${CI_REGISTRY_IMAGE}/v2-order-service:latest
+    pull_policy: always
     depends_on:
       - postgres-order
       - redis
@@ -204,7 +198,8 @@ services:
       SERVER_PORT: 8082
 
   payout-service:
-    build: ./payout-service
+    image: ${CI_REGISTRY_IMAGE}/v2-payout-service:latest
+    pull_policy: always
     depends_on:
       - postgres-payout
       - kafka
@@ -224,8 +219,3 @@ volumes:
   postgres-payout-data:
   grafana-data:
     driver: local
-
-networks:
-  delivery-microservices_default:
-    driver: bridge
-
