@@ -5,14 +5,16 @@ stages:
   - deploy
 
 variables:
-  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -DskipTests=true"
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  DOCKER_BUILDKIT: "1"
+  DOCKER_DRIVER: overlay2
 
 cache:
+  key: "$CI_COMMIT_REF_SLUG"
   paths:
     - .m2/repository/
 
-# Используем официальный Maven образ с Java
 image: maven:3.8-openjdk-17
 
 build:
@@ -42,20 +44,40 @@ test:
     POSTGRES_PASSWORD: postgres
     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/test_db
     SPRING_REDIS_HOST: redis
+    SPRING_PROFILES_ACTIVE: test
 
 docker:
   stage: docker
-  image: docker:latest
+  image: docker:24.0.7-cli
   services:
-    - docker:dind
+    - docker:24.0.7-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_CERT_PATH: "/certs/client"
+    DOCKER_TLS_VERIFY: "1"
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - apk add --no-cache docker-buildx
+    - docker buildx create --use
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/session-service:latest ./session-service
-    - docker build -t $CI_REGISTRY_IMAGE/order-service:latest ./order-service
-    - docker build -t $CI_REGISTRY_IMAGE/payout-service:latest ./payout-service
-    - docker push $CI_REGISTRY_IMAGE/session-service:latest
-    - docker push $CI_REGISTRY_IMAGE/order-service:latest
-    - docker push $CI_REGISTRY_IMAGE/payout-service:latest
+    # Сборка образов для каждого сервиса с использованием buildx для лучшей производительности
+    - |
+      for service in session-service order-service payout-service; do
+        echo "Building $service..."
+        docker buildx build \
+          --build-arg SERVICE_NAME=$service \
+          --build-arg BUILDKIT_INLINE_CACHE=1 \
+          --cache-from $CI_REGISTRY_IMAGE/$service:latest \
+          --tag $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_SHORT_SHA \
+          --tag $CI_REGISTRY_IMAGE/$service:latest \
+          --file Dockerfile \
+          --push \
+          .
+      done
+  after_script:
+    - docker buildx rm
   only:
     - main
+  except:
+    - tags
