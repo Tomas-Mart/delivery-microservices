@@ -34,7 +34,7 @@ build:
 
 test:
   stage: test
-  image: maven:3.8-openjdk-17
+  image: docker:24.0.7-cli  # Меняем образ на docker CLI
   services:
     - name: docker:24.0.7-dind
       alias: docker
@@ -47,6 +47,7 @@ test:
     POSTGRES_DB: test_db
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
+    # Для Maven нужно указать URL
     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/test_db
     SPRING_REDIS_HOST: redis
     SPRING_PROFILES_ACTIVE: test
@@ -58,8 +59,10 @@ test:
     TESTCONTAINERS_REUSE_ENABLE: "true"
     TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX: dockerhub.timeweb.cloud/
   before_script:
+    # Устанавливаем Maven
+    - apk add --no-cache maven openjdk17
     # Настройка для ускорения Docker
-    - docker system prune -f
+    - docker system prune -f || true
     - mkdir -p .testcontainers-cache
     # Восстанавливаем кэшированные образы
     - |
@@ -108,5 +111,6 @@ test:
         - payout-service/target/surefire-reports/TEST-*.xml
         - shared/target/surefire-reports/TEST-*.xml
     expire_in: 1 week
+    when: always  # Загружать артефакты даже при ошибках
   needs:
     - build
