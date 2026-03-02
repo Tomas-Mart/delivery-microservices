@@ -9,16 +9,19 @@ variables:
   MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
   DOCKER_BUILDKIT: "1"
   DOCKER_DRIVER: overlay2
+  # Для Testcontainers
+  TESTCONTAINERS_RYUK_DISABLED: "true"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
   paths:
     - .m2/repository/
 
-image: maven:3.8-openjdk-17
-
 build:
   stage: build
+  image: maven:3.8-openjdk-17
   script:
     - mvn clean compile
   artifacts:
@@ -31,9 +34,11 @@ build:
 
 test:
   stage: test
-  script:
-    - mvn test
+  image: maven:3.8-openjdk-17
   services:
+    - name: docker:24.0.7-dind
+      alias: docker
+      command: [ "--tls=false" ]
     - name: postgres:15
       alias: postgres
     - name: redis:7
@@ -45,6 +50,11 @@ test:
     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/test_db
     SPRING_REDIS_HOST: redis
     SPRING_PROFILES_ACTIVE: test
+    # Важно для Testcontainers
+    DOCKER_HOST: tcp://docker:2375
+    TESTCONTAINERS_HOST_OVERRIDE: docker
+  script:
+    - mvn test
 
 .docker-template: &docker-template
   image: docker:24.0.7-cli
