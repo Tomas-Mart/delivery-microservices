@@ -55,6 +55,53 @@ test:
     TESTCONTAINERS_HOST_OVERRIDE: docker
   script:
     - mvn test
+  after_script:
+    - echo "========== РЕЗУЛЬТАТЫ ТЕСТОВ =========="
+    - |
+      if [ -f session-service/target/surefire-reports/TEST-*.xml ]; then
+        echo "✅ Тесты session-service:"
+        grep -h "testsuite" session-service/target/surefire-reports/TEST-*.xml | sed 's/.*tests="\([^"]*\)".*errors="\([^"]*\)".*failures="\([^"]*\)".*skipped="\([^"]*\)".*/Всего: \1, Ошибки: \2, Падения: \3, Пропущено: \4/'
+      fi
+    - |
+      if [ -f order-service/target/surefire-reports/TEST-*.xml ]; then
+        echo "✅ Тесты order-service:"
+        grep -h "testsuite" order-service/target/surefire-reports/TEST-*.xml | sed 's/.*tests="\([^"]*\)".*errors="\([^"]*\)".*failures="\([^"]*\)".*skipped="\([^"]*\)".*/Всего: \1, Ошибки: \2, Падения: \3, Пропущено: \4/'
+      fi
+    - |
+      if [ -f payout-service/target/surefire-reports/TEST-*.xml ]; then
+        echo "✅ Тесты payout-service:"
+        grep -h "testsuite" payout-service/target/surefire-reports/TEST-*.xml | sed 's/.*tests="\([^"]*\)".*errors="\([^"]*\)".*failures="\([^"]*\)".*skipped="\([^"]*\)".*/Всего: \1, Ошибки: \2, Падения: \3, Пропущено: \4/'
+      fi
+    - |
+      if [ -f shared/target/surefire-reports/TEST-*.xml ]; then
+        echo "✅ Тесты shared:"
+        grep -h "testsuite" shared/target/surefire-reports/TEST-*.xml | sed 's/.*tests="\([^"]*\)".*errors="\([^"]*\)".*failures="\([^"]*\)".*skipped="\([^"]*\)".*/Всего: \1, Ошибки: \2, Падения: \3, Пропущено: \4/'
+      fi
+    - |
+      TOTAL_TESTS=$(find . -name "TEST-*.xml" -exec grep -h "testsuite" {} \; | awk -F 'tests="' '{sum += $2}' | awk '{print $1}')
+      TOTAL_ERRORS=$(find . -name "TEST-*.xml" -exec grep -h "testsuite" {} \; | awk -F 'errors="' '{sum += $2}' | awk '{print $1}')
+      TOTAL_FAILURES=$(find . -name "TEST-*.xml" -exec grep -h "testsuite" {} \; | awk -F 'failures="' '{sum += $2}' | awk '{print $1}')
+      TOTAL_SKIPPED=$(find . -name "TEST-*.xml" -exec grep -h "testsuite" {} \; | awk -F 'skipped="' '{sum += $2}' | awk '{print $1}')
+      echo "========== ИТОГО =========="
+      echo "📊 Всего тестов: $TOTAL_TESTS"
+      echo "❌ Ошибки: $TOTAL_ERRORS"
+      echo "⚠️ Падения: $TOTAL_FAILURES"
+      echo "⏭️ Пропущено: $TOTAL_SKIPPED"
+      echo "✅ Успешно: $((TOTAL_TESTS - TOTAL_ERRORS - TOTAL_FAILURES - TOTAL_SKIPPED))"
+      echo "==========================="
+  artifacts:
+    paths:
+      - session-service/target/surefire-reports/
+      - order-service/target/surefire-reports/
+      - payout-service/target/surefire-reports/
+      - shared/target/surefire-reports/
+    reports:
+      junit:
+        - session-service/target/surefire-reports/TEST-*.xml
+        - order-service/target/surefire-reports/TEST-*.xml
+        - payout-service/target/surefire-reports/TEST-*.xml
+        - shared/target/surefire-reports/TEST-*.xml
+    expire_in: 1 week
 
 .docker-template: &docker-template
   image: docker:24.0.7-cli
@@ -92,8 +139,8 @@ docker:
         esac
         echo "Сборка $service на порту $port..."
       
-        # Используем уникальный тег с датой для полного сброса кэша
-        UNIQUE_TAG="fixed-$(date +%Y%m%d-%H%M%S)"
+        # Используем уникальное имя образа с префиксом v2
+        NEW_IMAGE_NAME="$CI_REGISTRY_IMAGE/v2-$service"
       
         # Полностью очищаем локальный кэш buildx
         docker buildx rm mybuilder || true
@@ -106,15 +153,13 @@ docker:
           --build-arg SERVICE_NAME=$service \
           --build-arg SERVICE_PORT=$port \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
-          --tag $CI_REGISTRY_IMAGE/$service:$UNIQUE_TAG \
-          --tag $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_SHORT_SHA \
-          --tag $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_REF_SLUG \
-          --tag $CI_REGISTRY_IMAGE/$service:latest \
+          --tag $NEW_IMAGE_NAME:latest \
+          --tag $NEW_IMAGE_NAME:$CI_COMMIT_SHORT_SHA \
           --file Dockerfile \
           --push \
           .
       
-        echo "Образ $service успешно собран с тегом $UNIQUE_TAG"
+        echo "Образ $service успешно собран как $NEW_IMAGE_NAME:latest"
       done
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
