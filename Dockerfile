@@ -17,7 +17,7 @@ COPY shared/pom.xml shared/pom.xml
 RUN --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -B
 
-# Копируем исходники
+# Копируем исходники для конкретного сервиса и shared модуля
 COPY ${SERVICE_NAME}/src ${SERVICE_NAME}/src
 COPY shared/src shared/src
 
