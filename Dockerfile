@@ -9,7 +9,7 @@ WORKDIR /build
 # Копируем родительский POM
 COPY pom.xml .
 
-# Копируем POM-файлы модулей в правильные места
+# Копируем POM-файлы модулей
 COPY ${SERVICE_NAME}/pom.xml ${SERVICE_NAME}/pom.xml
 COPY shared/pom.xml shared/pom.xml
 
@@ -17,7 +17,7 @@ COPY shared/pom.xml shared/pom.xml
 RUN --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -B
 
-# Копируем исходники для конкретного сервиса
+# Копируем исходники
 COPY ${SERVICE_NAME}/src ${SERVICE_NAME}/src
 COPY shared/src shared/src
 
