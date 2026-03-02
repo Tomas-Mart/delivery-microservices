@@ -92,7 +92,13 @@ docker:
         esac
         echo "Сборка $service на порту $port..."
       
-        # Полностью очищаем кэш и не используем --cache-from
+        # Используем уникальный тег с датой для полного сброса кэша
+        UNIQUE_TAG="fixed-$(date +%Y%m%d-%H%M%S)"
+      
+        # Полностью очищаем локальный кэш buildx
+        docker buildx rm mybuilder || true
+        docker buildx create --name mybuilder --use
+      
         docker buildx build \
           --no-cache \
           --pull \
@@ -100,6 +106,7 @@ docker:
           --build-arg SERVICE_NAME=$service \
           --build-arg SERVICE_PORT=$port \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
+          --tag $CI_REGISTRY_IMAGE/$service:$UNIQUE_TAG \
           --tag $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_SHORT_SHA \
           --tag $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_REF_SLUG \
           --tag $CI_REGISTRY_IMAGE/$service:latest \
@@ -107,8 +114,7 @@ docker:
           --push \
           .
       
-        # Удаляем старый образ из registry (если есть доступ)
-        echo "Образ $service успешно собран и запушен"
+        echo "Образ $service успешно собран с тегом $UNIQUE_TAG"
       done
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
