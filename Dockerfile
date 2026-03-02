@@ -6,17 +6,20 @@ ARG SERVICE_PORT=8081
 FROM maven:3.8-openjdk-17 AS builder
 WORKDIR /build
 
-# Копируем POM файлы для кэширования зависимостей
+# Копируем родительский POM
 COPY pom.xml .
-COPY shared/pom.xml shared/
-COPY ${SERVICE_NAME}/pom.xml ${SERVICE_NAME}/
+
+# Копируем POM-файлы модулей в правильные места
+COPY ${SERVICE_NAME}/pom.xml ${SERVICE_NAME}/pom.xml
+COPY shared/pom.xml shared/pom.xml
 
 # Скачиваем зависимости (кэшируется)
 RUN --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -B
 
 # Копируем исходники
-COPY . .
+COPY ${SERVICE_NAME}/src ${SERVICE_NAME}/src
+COPY shared/src shared/src
 
 # Собираем только нужный сервис
 RUN --mount=type=cache,target=/root/.m2 \
