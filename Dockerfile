@@ -17,7 +17,7 @@ COPY shared/pom.xml shared/pom.xml
 RUN --mount=type=cache,target=/root/.m2 \
     mvn dependency:go-offline -B
 
-# Копируем исходники для конкретного сервиса и shared модуля
+# Копируем исходники для конкретного сервиса
 COPY ${SERVICE_NAME}/src ${SERVICE_NAME}/src
 COPY shared/src shared/src
 
@@ -39,7 +39,7 @@ COPY --from=builder --chown=appuser:appgroup /build/${SERVICE_NAME}/target/*.jar
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD java -jar app.jar --health || exit 1
 
-# Метки для лучшего управления образами
+# Метки
 LABEL maintainer="Ksenia Tomas-Mart" \
       org.opencontainers.image.source="https://gitlab.com/kxsenia/delivery-microservices" \
       org.opencontainers.image.description="Delivery microservice" \
