@@ -5,11 +5,15 @@ stages:
   - deploy
 
 variables:
-  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -DskipTests=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
 
 cache:
   paths:
     - .m2/repository/
+
+# Используем официальный Maven образ с Java
+image: maven:3.8-openjdk-17
 
 build:
   stage: build
@@ -17,22 +21,41 @@ build:
     - mvn clean compile
   artifacts:
     paths:
-      - target/
+      - session-service/target/
+      - order-service/target/
+      - payout-service/target/
+      - shared/target/
+    expire_in: 1 hour
 
 test:
   stage: test
   script:
     - mvn test
   services:
-    - postgres:15
-    - redis:7
+    - name: postgres:15
+      alias: postgres
+    - name: redis:7
+      alias: redis
+  variables:
+    POSTGRES_DB: test_db
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/test_db
+    SPRING_REDIS_HOST: redis
 
 docker:
   stage: docker
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker build -t $CI_REGISTRY_IMAGE/session-service ./session-service
-    - docker build -t $CI_REGISTRY_IMAGE/order-service ./order-service
-    - docker build -t $CI_REGISTRY_IMAGE/payout-service ./payout-service
-    - docker push $CI_REGISTRY_IMAGE/session-service
-    - docker push $CI_REGISTRY_IMAGE/order-service
-    - docker push $CI_REGISTRY_IMAGE/payout-service
+    - docker build -t $CI_REGISTRY_IMAGE/session-service:latest ./session-service
+    - docker build -t $CI_REGISTRY_IMAGE/order-service:latest ./order-service
+    - docker build -t $CI_REGISTRY_IMAGE/payout-service:latest ./payout-service
+    - docker push $CI_REGISTRY_IMAGE/session-service:latest
+    - docker push $CI_REGISTRY_IMAGE/order-service:latest
+    - docker push $CI_REGISTRY_IMAGE/payout-service:latest
+  only:
+    - main
