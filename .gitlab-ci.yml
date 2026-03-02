@@ -91,20 +91,24 @@ docker:
           payout-service)  port=8083 ;;
         esac
         echo "Сборка $service на порту $port..."
-        # --no-cache заставит пересобрать без кэша
+      
+        # Полностью очищаем кэш и не используем --cache-from
         docker buildx build \
           --no-cache \
+          --pull \
           --builder mybuilder \
           --build-arg SERVICE_NAME=$service \
           --build-arg SERVICE_PORT=$port \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
-          --cache-from $CI_REGISTRY_IMAGE/$service:latest \
           --tag $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_SHORT_SHA \
           --tag $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_REF_SLUG \
           --tag $CI_REGISTRY_IMAGE/$service:latest \
           --file Dockerfile \
           --push \
           .
+      
+        # Удаляем старый образ из registry (если есть доступ)
+        echo "Образ $service успешно собран и запушен"
       done
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
