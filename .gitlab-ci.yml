@@ -61,12 +61,18 @@ docker:
     - apk add --no-cache docker-buildx
     - docker buildx create --use
   script:
-    # Сборка образов для каждого сервиса с использованием buildx для лучшей производительности
     - |
       for service in session-service order-service payout-service; do
-        echo "Building $service..."
+        port=8081
+        if [ "$service" = "order-service" ]; then
+          port=8082
+        elif [ "$service" = "payout-service" ]; then
+          port=8083
+        fi
+        echo "Building $service on port $port..."
         docker buildx build \
           --build-arg SERVICE_NAME=$service \
+          --build-arg SERVICE_PORT=$port \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
           --cache-from $CI_REGISTRY_IMAGE/$service:latest \
           --tag $CI_REGISTRY_IMAGE/$service:$CI_COMMIT_SHORT_SHA \

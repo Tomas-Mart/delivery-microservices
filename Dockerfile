@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1.4
 ARG SERVICE_NAME
+ARG SERVICE_PORT=8081
 
 # Build stage
 FROM maven:3.8-openjdk-17 AS builder
@@ -42,6 +43,6 @@ LABEL maintainer="Ksenia Tomas-Mart" \
       org.opencontainers.image.licenses="MIT"
 
 USER appuser
-EXPOSE 8081
+EXPOSE ${SERVICE_PORT}
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
