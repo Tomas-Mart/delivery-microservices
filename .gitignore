@@ -9,6 +9,7 @@ replay_pid*
 
 ### Maven ###
 target/
+**/target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -18,14 +19,8 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.jar
 .mvn/wrapper/maven-wrapper.properties
-
-### Gradle ###
-.gradle/
-build/
-gradle-app.setting
-!gradle-wrapper.jar
-gradle-wrapper.properties
 
 ### IntelliJ IDEA ###
 .idea/
@@ -35,40 +30,7 @@ gradle-wrapper.properties
 out/
 .idea_modules/
 atlassian-ide-plugin.xml
-.idea/shelf/
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/dataSources/
-.idea/dataSources.local.xml
-.idea/sqlDataSources.xml
-.idea/dynamic.xml
-.idea/uiDesigner.xml
-.idea/libraries/
-.idea/misc.xml
-.idea/compiler.xml
-.idea/encodings.xml
-.idea/modules.xml
-.idea/vcs.xml
-.idea/jarRepositories.xml
-.idea/runConfigurations/
-.idea/httpRequests/
-.idea/artifacts/
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/gradle.xml
-.idea/mongoSettings.xml
-.idea/dictionaries/
-.idea/caches/
-.idea/codeStyles/
-.idea/markdown-navigator.xml
-.idea/markdown-navigator-enh.xml
-.idea/markdown-navigator/
-.idea/modules/
-.idea/runConfigurations/
-.idea/libraries/
-.idea/sbt.xml
-.idea/scala_compiler.xml
-.idea/scala_settings.xml
+**/*.iml
 
 ### Eclipse ###
 .settings/
@@ -108,9 +70,13 @@ nb-configuration.xml
 
 ### Logs ###
 logs/
+**/logs/
 *.log
 *.lck
 *.trace
+**/*.log
+**/kubeadm-init.log
+**/dashboard-token.txt
 
 ### OS ###
 .DS_Store
@@ -136,21 +102,25 @@ docker-compose.dev.yml
 docker/volumes/
 *.tar
 *.tgz
+!Dockerfile
+!docker-compose*.yml
+!docker-compose*.yaml
 
 ### Environment ###
 .env
 .env.local
 .env.*.local
-application-local.yml
-application-dev.yml
-application-prod.yml
-application-*.properties
-application-*.yaml
+**/application-local.yml
+**/application-dev.yml
+**/application-prod.yml
+**/application-*.properties
+**/application-*.yaml
 !application.yml
 !application.properties
 secrets/
 secrets.*
 *.secret
+!.env.example
 
 ### Test reports ###
 test-output/
@@ -172,8 +142,10 @@ helm/repositories/
 kubeconfig
 *.kubeconfig
 *.kubconfig
-*.k8s.yaml
-*.k8s.yml
+k8s-tools/*.exe
+k8s-tools/*.zip
+k8s-tools/minikube*
+!k8s-tools/.gitkeep
 !values.yaml
 !Chart.yaml
 !templates/
@@ -249,6 +221,8 @@ grafana/plugins/
 *.grafana
 *.db
 *.sqlite3
+!grafana/provisioning/
+!grafana-dashboards/
 
 ### Jaeger ###
 jaeger/data/
@@ -281,6 +255,8 @@ jaeger/logs/
 *.rej
 *.orig
 *.old
+*.save
+*.saved
 
 ### Backup files ###
 *.backup
@@ -335,11 +311,17 @@ dmypy.json
 cover/
 *.mo
 *.pot
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media/
 static/
-*.pid
-*.pid.lock
+
+### GitKeep ###
+!.gitkeep
+!**/.gitkeep
+
+### Локальные скрипты ###
+*.local.sh
+restart-all.ps1
+check-my-dev.sh
