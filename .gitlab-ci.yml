@@ -78,6 +78,10 @@ test:
 docker:
   stage: docker
   <<: *docker-template
+  variables:
+    BUILDKIT_PROGRESS: plain
+    DOCKER_BUILDKIT: 1
+    BUILDKIT_NO_CLIENT_LOG: 1
   script:
     - |
       for service in session-service order-service payout-service; do
@@ -86,8 +90,10 @@ docker:
           order-service)   port=8082 ;;
           payout-service)  port=8083 ;;
         esac
-        echo "Building $service on port $port..."
+        echo "Сборка $service на порту $port..."
+        # --no-cache заставит пересобрать без кэша
         docker buildx build \
+          --no-cache \
           --builder mybuilder \
           --build-arg SERVICE_NAME=$service \
           --build-arg SERVICE_PORT=$port \
